@@ -6,6 +6,7 @@
 
 - **SSH 密钥管理**: 生成、列出、查看和删除 SSH 密钥
 - **多仓库支持**: 配置文件驱动，支持批量同步多个仓库
+- **多配置文件**: 支持将配置拆分到 `configs/` 目录下的多个文件中
 - **安全同步**: 仅允许快进推送，避免强制覆盖目标仓库
 - **分支和标签同步**: 可选择同步特定分支和标签
 - **试运行模式**: 预览同步操作而不实际执行
@@ -34,7 +35,7 @@ pip install -e .
 git-sync init
 ```
 
-这会创建 `.ssh` 目录和 `keys_manifest.yaml` 文件。
+这会创建 `configs/` 目录（包含示例配置文件）和 `.ssh` 目录。
 
 ### 2. 生成 SSH 密钥
 
@@ -46,28 +47,11 @@ git-sync key gen -n my-key
 git-sync key show my-key
 ```
 
-### 3. 创建配置文件
+### 3. 配置仓库
 
-复制示例配置并编辑：
-
-```bash
-cp config.example.yaml config.yaml
-```
-
-编辑 `config.yaml`:
+编辑 `configs/02-repositories.yaml` 添加你的仓库配置：
 
 ```yaml
-version: "1.0"
-
-ssh:
-  key_storage: ".ssh"
-  default_key_type: "ed25519"
-
-sync:
-  temp_dir: "/tmp/git-sync"
-  timeout: 300
-  cleanup_after_sync: true
-
 repositories:
   - name: "my-project"
     source:
@@ -104,7 +88,7 @@ git-sync sync -r my-project
 
 ```
 --version                       显示版本号
--c, --config PATH               指定配置文件路径
+-c, --config PATH               指定配置目录路径
 -v, --verbose                   启用详细输出
 --log-level [DEBUG|INFO|WARNING|ERROR]  日志级别
 ```
@@ -158,6 +142,61 @@ git-sync sync --dry-run
 ```
 
 ## 配置说明
+
+### 多配置文件支持
+
+Git Sync 支持将配置拆分到 `configs/` 目录下的多个 YAML 文件中，便于管理和组织：
+
+```
+configs/
+├── 01-global.yaml      # 全局设置（SSH、同步配置）
+├── 02-team-a.yaml      # 团队 A 的仓库
+└── 03-team-b.yaml      # 团队 B 的仓库
+```
+
+**合并策略：**
+
+| 配置项 | 合并策略 |
+|--------|---------|
+| `version` | 第一个文件定义的值 |
+| `ssh` | 第一个文件定义的值 |
+| `sync` | 第一个文件定义的值 |
+| `repositories` | 合并所有仓库，同名仓库后者覆盖前者 |
+
+**文件命名建议：**
+
+- 使用数字前缀控制加载顺序（如 `01-`、`02-`）
+- 全局设置文件应放在第一位以确保设置生效
+- 配置文件按字母顺序加载
+
+**示例：**
+
+`configs/01-global.yaml`:
+```yaml
+version: "1.0"
+
+ssh:
+  key_storage: ".ssh"
+  default_key_type: "ed25519"
+
+sync:
+  temp_dir: "/tmp/git-sync"
+  timeout: 300
+  cleanup_after_sync: true
+```
+
+`configs/02-repositories.yaml`:
+```yaml
+repositories:
+  - name: "project-alpha"
+    source:
+      url: "git@github.com:source/project.git"
+      ssh_key: "project-key"
+    target:
+      url: "git@gitlab.com:target/project.git"
+      ssh_key: "project-key"
+    enabled: true
+```
 
 ### SSH 配置
 
