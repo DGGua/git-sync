@@ -28,6 +28,13 @@ build/
 # Configuration (contains sensitive data)
 config.yaml
 
+# User configuration files (may contain real repo URLs)
+configs/
+
+# Keep example configs
+!configs/01-global.yaml
+!configs/02-project-alpha.yaml
+
 # SSH keys (sensitive)
 .ssh/*.pem
 .ssh/id_*
