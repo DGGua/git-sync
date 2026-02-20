@@ -57,6 +57,12 @@
   - [x] 前端设置页配置 UI
   - [x] 配置持久化
 
+- [x] Docker 部署
+  - [x] Dockerfile（多阶段构建）
+  - [x] docker-compose.yml（开发配置）
+  - [x] docker-compose.prod.yml（生产配置）
+  - [x] .dockerignore
+
 ## 待开发功能
 
 ### 优先级高
@@ -71,4 +77,3 @@
 ### 优先级低
 - [ ] 暗色主题
 - [ ] 多语言支持
-- [ ] Docker 部署支持

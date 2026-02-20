@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+.eggs
+*.egg
+
+# Node
+frontend/node_modules
+frontend/.vite
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+tests/
+pytest.ini
+.coverage
+htmlcov/
+
+# Development files
+.claude
+*.log
+.env
+.env.*
+
+# Local data (will be mounted as volumes)
+.ssh/
+.mirror-cache/
+configs/
+data/

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  git-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: git-sync:latest
+    container_name: git-sync
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Configuration files
+      - ./configs:/app/configs:rw
+      # SSH keys for repository access
+      - ./data/ssh:/app/.ssh:rw
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

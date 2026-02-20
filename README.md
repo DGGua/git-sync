@@ -1,45 +1,47 @@
 # Git Sync
 
-一个用于同步 Git 仓库的命令行工具，支持 SSH 密钥管理和安全的仓库同步。
+A command-line tool for synchronizing Git repositories with SSH key management and safe sync operations.
 
-## 功能特性
+[中文文档](README_CN.md)
 
-- **Web 管理界面**: 通过网页管理仓库配置、SSH 密钥和同步操作
-- **SSH 密钥管理**: 生成、列出、查看和删除 SSH 密钥
-- **多仓库支持**: 配置文件驱动，支持批量同步多个仓库
-- **多配置文件**: 支持将配置拆分到 `configs/` 目录下的多个文件中
-- **安全同步**: 仅允许快进推送，避免强制覆盖目标仓库
-- **分支和标签同步**: 可选择同步特定分支和标签
-- **试运行模式**: 预览同步操作而不实际执行
+## Features
 
-## 安装
+- **Web Management UI**: Manage repository configs, SSH keys, and sync operations via web interface
+- **SSH Key Management**: Generate, list, view, and delete SSH keys
+- **Multi-Repository Support**: Configuration-driven batch sync for multiple repositories
+- **Multiple Config Files**: Split configuration across multiple files in `configs/` directory
+- **Safe Sync**: Fast-forward only pushes to prevent accidental overwrites
+- **Branch and Tag Sync**: Selective sync of specific branches and tags
+- **Dry Run Mode**: Preview sync operations without executing them
+
+## Installation
 
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone <repo-url>
 cd github-copy
 
-# 创建虚拟环境
+# Create virtual environment
 python3 -m venv .venv
 source .venv/bin/activate  # Linux/macOS
-# 或 .venv\Scripts\activate  # Windows
+# or .venv\Scripts\activate  # Windows
 
-# 安装依赖
+# Install dependencies
 pip install -e .
 
-# 安装 Web 界面依赖（可选）
+# Install web interface dependencies (optional)
 pip install -e ".[web]"
 
-# 安装前端依赖并构建
+# Build frontend
 cd frontend
 npm install
 npm run build
 cd ..
 ```
 
-## 启动方式
+## Getting Started
 
-### CLI 模式
+### CLI Mode
 
 ```bash
 git-sync --help
@@ -47,48 +49,137 @@ git-sync init
 git-sync sync --dry-run
 ```
 
-### Web 界面模式
+### Web Interface Mode
 
 ```bash
-# 启动 Web 服务
+# Start web service
 uvicorn git_sync.web.app:app --reload
 
-# 或指定端口和主机
+# Or specify host and port
 uvicorn git_sync.web.app:app --host 0.0.0.0 --port 8000
 ```
 
-然后访问 http://localhost:8000 即可使用 Web 管理界面。
+Then visit http://localhost:8000 to access the web interface.
 
-**Web 界面功能：**
-- Dashboard 概览
-- 仓库管理（支持拖拽排序）
-- SSH 密钥管理
-- 全局设置配置
-- 一键同步操作
+**Web Interface Features:**
+- Dashboard overview
+- Repository management (drag-and-drop sorting)
+- SSH key management
+- Global settings configuration
+- One-click sync operations
 
-## 快速开始
+### Docker Deployment
 
-### 1. 初始化项目
+#### Quick Start
+
+```bash
+# Build and start (background)
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop service
+docker compose down
+```
+
+Visit http://localhost:8000 to access the web interface.
+
+#### Directory Structure
+
+```
+./
+├── configs/          # Configuration files (YAML)
+└── data/
+    ├── ssh/          # SSH key storage
+    └── mirror-cache/ # Mirror cache (faster syncs)
+```
+
+#### First-time Setup
+
+1. **Start the service**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Access Web UI** - http://localhost:8000
+
+3. **Add SSH Keys** - Generate or import keys in the Keys page
+
+4. **Configure Public Keys** - Add public keys to your Git hosting service (GitHub/GitLab/Gitea etc.)
+
+5. **Add Repositories** - Configure source and target repositories
+
+6. **Enable Auto Sync** - Each repository can have its own sync interval
+
+#### Configuration Files
+
+**docker-compose.yml** - Development/Testing
+- Uses bind mounts, data stored in `./data/` directory
+- Easy to view and modify configurations
+
+**docker-compose.prod.yml** - Production
+- Uses Docker named volumes, managed by Docker
+- Supports environment variables
+- Automatic log rotation
+
+```bash
+# Use production config
+docker compose -f docker-compose.prod.yml up -d
+
+# Custom port and timezone
+PORT=9000 TZ=America/New_York docker compose -f docker-compose.prod.yml up -d
+```
+
+#### Common Commands
+
+```bash
+# Rebuild image
+docker compose build --no-cache
+
+# View status
+docker compose ps
+
+# Debug in container
+docker compose exec git-sync bash
+
+# View resource usage
+docker compose top
+
+# Complete cleanup (including data)
+docker compose down -v
+```
+
+#### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TZ` | `Asia/Shanghai` | Timezone |
+| `PORT` | `8000` | Service port (prod config only) |
+
+## Quick Start
+
+### 1. Initialize Project
 
 ```bash
 git-sync init
 ```
 
-这会创建 `configs/` 目录（包含示例配置文件）和 `.ssh` 目录。
+This creates `configs/` directory (with example config files) and `.ssh` directory.
 
-### 2. 生成 SSH 密钥
+### 2. Generate SSH Key
 
 ```bash
-# 生成名为 my-key 的 SSH 密钥
+# Generate SSH key named my-key
 git-sync key gen -n my-key
 
-# 查看公钥（添加到 Git 托管服务）
+# View public key (add to Git hosting service)
 git-sync key show my-key
 ```
 
-### 3. 配置仓库
+### 3. Configure Repository
 
-编辑 `configs/02-repositories.yaml` 添加你的仓库配置：
+Edit `configs/02-repositories.yaml` to add your repository:
 
 ```yaml
 repositories:
@@ -100,115 +191,115 @@ repositories:
       url: "git@gitlab.com:target/project.git"
       ssh_key: "my-key"
     enabled: true
-    sync_branches: ["main", "develop"]  # 空列表表示同步所有分支
+    sync_branches: ["main", "develop"]  # Empty list = all branches
     sync_tags: true
 ```
 
-### 4. 添加公钥到 Git 服务
+### 4. Add Public Key to Git Service
 
-将公钥添加到源仓库和目标仓库的 Git 托管服务（GitHub、GitLab、Gitea 等）。
+Add the public key to both source and target Git hosting services (GitHub, GitLab, Gitea, etc.).
 
-### 5. 执行同步
+### 5. Run Sync
 
 ```bash
-# 试运行（预览操作）
+# Dry run (preview)
 git-sync sync --dry-run
 
-# 实际同步
+# Actual sync
 git-sync sync
 
-# 同步指定仓库
+# Sync specific repository
 git-sync sync -r my-project
 ```
 
-## CLI 命令
+## CLI Commands
 
-### 全局选项
+### Global Options
 
 ```
---version                       显示版本号
--c, --config PATH               指定配置目录路径
--v, --verbose                   启用详细输出
---log-level [DEBUG|INFO|WARNING|ERROR]  日志级别
+--version                       Show version
+-c, --config PATH               Config directory path
+-v, --verbose                   Verbose output
+--log-level [DEBUG|INFO|WARNING|ERROR]  Log level
 ```
 
-### 命令列表
+### Commands
 
 #### `git-sync init`
 
-初始化 git-sync 项目，创建必要的目录和文件。
+Initialize git-sync project, creating necessary directories and files.
 
 #### `git-sync key`
 
-SSH 密钥管理命令。
+SSH key management commands.
 
 ```bash
-# 生成密钥
-git-sync key gen -n <名称> [--type ed25519|rsa]
+# Generate key
+git-sync key gen -n <name> [--type ed25519|rsa]
 
-# 列出所有密钥
+# List all keys
 git-sync key list
 
-# 显示公钥
-git-sync key show <名称>
+# Show public key
+git-sync key show <name>
 
-# 删除密钥
-git-sync key delete <名称>
+# Delete key
+git-sync key delete <name>
 ```
 
 #### `git-sync repo`
 
-仓库管理命令。
+Repository management commands.
 
 ```bash
-# 列出配置的仓库
+# List configured repositories
 git-sync repo list
 ```
 
 #### `git-sync sync`
 
-同步仓库。
+Synchronize repositories.
 
 ```bash
-# 同步所有启用的仓库
+# Sync all enabled repositories
 git-sync sync
 
-# 同步指定仓库
-git-sync sync -r <名称>
+# Sync specific repository
+git-sync sync -r <name>
 
-# 试运行模式
+# Dry run mode
 git-sync sync --dry-run
 ```
 
-## 配置说明
+## Configuration
 
-### 多配置文件支持
+### Multiple Config Files
 
-Git Sync 支持将配置拆分到 `configs/` 目录下的多个 YAML 文件中，便于管理和组织：
+Git Sync supports splitting configuration across multiple YAML files in `configs/` directory:
 
 ```
 configs/
-├── 01-global.yaml      # 全局设置（SSH、同步配置）
-├── 02-team-a.yaml      # 团队 A 的仓库
-└── 03-team-b.yaml      # 团队 B 的仓库
+├── 01-global.yaml      # Global settings (SSH, sync config)
+├── 02-team-a.yaml      # Team A repositories
+└── 03-team-b.yaml      # Team B repositories
 ```
 
-**合并策略：**
+**Merge Strategy:**
 
-| 配置项 | 合并策略 |
-|--------|---------|
-| `version` | 第一个文件定义的值 |
-| `ssh` | 第一个文件定义的值 |
-| `sync` | 第一个文件定义的值 |
-| `repositories` | 合并所有仓库，同名仓库后者覆盖前者 |
+| Config Item | Merge Strategy |
+|-------------|----------------|
+| `version` | Value from first file |
+| `ssh` | Value from first file |
+| `sync` | Value from first file |
+| `repositories` | Merge all, later files override same-name repos |
 
-**文件命名建议：**
+**Naming Convention:**
 
-- 使用数字前缀控制加载顺序（如 `01-`、`02-`）
-- 全局设置文件应放在第一位以确保设置生效
-- 配置文件按字母顺序加载
+- Use numeric prefix to control load order (e.g., `01-`, `02-`)
+- Global settings file should be first
+- Config files are loaded in alphabetical order
 
-**示例：**
+**Example:**
 
 `configs/01-global.yaml`:
 ```yaml
@@ -237,47 +328,49 @@ repositories:
     enabled: true
 ```
 
-### SSH 配置
+### SSH Configuration
 
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `key_storage` | string | `.ssh` | SSH 密钥存储目录 |
-| `default_key_type` | string | `ed25519` | 默认密钥类型 (ed25519/rsa) |
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `key_storage` | string | `.ssh` | SSH key storage directory |
+| `default_key_type` | string | `ed25519` | Default key type (ed25519/rsa) |
 
-### 同步配置
+### Sync Configuration
 
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `temp_dir` | string | `/tmp/git-sync` | 临时工作目录 |
-| `timeout` | int | `300` | 操作超时时间（秒） |
-| `cleanup_after_sync` | bool | `true` | 同步后清理临时文件 |
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `temp_dir` | string | `/tmp/git-sync` | Temporary working directory |
+| `timeout` | int | `300` | Operation timeout (seconds) |
+| `cleanup_after_sync` | bool | `true` | Clean up temp files after sync |
 
-### 仓库配置
+### Repository Configuration
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `name` | string | 是 | 仓库名称（唯一标识） |
-| `source.url` | string | 是 | 源仓库 URL |
-| `source.ssh_key` | string | 是 | 源仓库使用的 SSH 密钥名 |
-| `target.url` | string | 是 | 目标仓库 URL |
-| `target.ssh_key` | string | 是 | 目标仓库使用的 SSH 密钥名 |
-| `enabled` | bool | 否 | 是否启用同步（默认 true） |
-| `sync_branches` | list | 否 | 要同步的分支列表，空列表表示所有分支 |
-| `sync_tags` | bool | 否 | 是否同步标签（默认 false） |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Repository name (unique identifier) |
+| `source.url` | string | Yes | Source repository URL |
+| `source.ssh_key` | string | Yes | SSH key name for source |
+| `target.url` | string | Yes | Target repository URL |
+| `target.ssh_key` | string | Yes | SSH key name for target |
+| `enabled` | bool | No | Enable sync (default: true) |
+| `sync_branches` | list | No | Branches to sync, empty = all |
+| `sync_tags` | bool | No | Sync tags (default: false) |
+| `auto_sync_enabled` | bool | No | Enable auto sync (default: true) |
+| `auto_sync_interval` | int | No | Auto sync interval in seconds (default: 86400) |
 
-## 安全特性
+## Security Features
 
-### 快进检查
+### Fast-Forward Check
 
-工具在推送前会检查目标分支是否可以快进合并。如果源分支和目标分支历史出现分叉，该分支会被跳过，避免意外覆盖。
+Before pushing, the tool checks if the target branch can be fast-forward merged. If source and target branches have diverged, the branch is skipped to prevent accidental overwrites.
 
-### 不支持强制推送
+### No Force Push
 
-为了安全起见，工具不支持强制推送（force push）。如果需要强制更新，请手动操作。
+For safety, the tool does not support force push. If you need to force update, please do it manually.
 
-## 示例场景
+## Example Scenarios
 
-### 场景 1：GitHub 到 GitLab 镜像
+### Scenario 1: GitHub to GitLab Mirror
 
 ```yaml
 repositories:
@@ -293,7 +386,7 @@ repositories:
     sync_tags: true
 ```
 
-### 场景 2：多仓库批量同步
+### Scenario 2: Multi-Repository Batch Sync
 
 ```yaml
 repositories:
@@ -316,7 +409,7 @@ repositories:
     enabled: true
 ```
 
-### 场景 3：自建 Gitea 同步
+### Scenario 3: Self-hosted Gitea Sync
 
 ```yaml
 repositories:
@@ -332,25 +425,25 @@ repositories:
     sync_tags: true
 ```
 
-## 故障排除
+## Troubleshooting
 
-### SSH 认证失败
+### SSH Authentication Failed
 
-1. 确认公钥已正确添加到 Git 托管服务
-2. 检查密钥权限：`chmod 600 .ssh/<密钥名称>`
-3. 手动测试连接：`ssh -i .ssh/<密钥名称> -T git@<主机>`
+1. Verify public key is correctly added to Git hosting service
+2. Check key permissions: `chmod 600 .ssh/<key-name>`
+3. Test connection manually: `ssh -i .ssh/<key-name> -T git@<host>`
 
-### 主机密钥验证失败
+### Host Key Verification Failed
 
 ```bash
-# 扫描并添加主机密钥
-ssh-keyscan <主机> >> ~/.ssh/known_hosts
+# Scan and add host key
+ssh-keyscan <host> >> ~/.ssh/known_hosts
 ```
 
-### 分支被跳过
+### Branch Skipped
 
-如果分支因"历史分叉"被跳过，说明目标仓库的该分支有源仓库没有的提交。你需要决定是否要手动处理这个冲突。
+If a branch is skipped due to "diverged history", it means the target branch has commits that the source doesn't. You need to decide how to handle this conflict manually.
 
-## 许可证
+## License
 
 MIT License

@@ -1,0 +1,38 @@
+version: '3.8'
+
+# Production docker-compose with named volumes
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+
+services:
+  git-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: git-sync:latest
+    container_name: git-sync
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - configs:/app/configs:rw
+      - ssh-data:/app/.ssh:rw
+      - mirror-cache:/app/.mirror-cache:rw
+    environment:
+      - TZ=${TZ:-UTC}
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  configs:
+  ssh-data:
+  mirror-cache:

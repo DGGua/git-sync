@@ -11,7 +11,8 @@
       "Bash(ssh-keygen:*)",
       "Bash(ssh-keyscan:*)",
       "Bash(ssh:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(ls:*)"
     ]
   }
 }
