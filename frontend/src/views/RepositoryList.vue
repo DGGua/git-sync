@@ -117,13 +117,20 @@ async function handleSync(name) {
   syncingRepo.value = name
   try {
     const result = await syncStore.runSingleSync(name, false)
-    if (result.success) {
+    if (result.background) {
+      showToast(`Sync started in background for ${name}. Check History for results.`, 'info')
+    } else if (result.success) {
       showToast(`Sync completed for ${name}`, 'success')
     } else {
       showToast(`Sync failed: ${result.message}`, 'error')
     }
   } catch (e) {
-    showToast(`Sync failed: ${e.message}`, 'error')
+    // Handle timeout as background sync
+    if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
+      showToast(`Sync is running in background for ${name}. Check History for results.`, 'info')
+    } else {
+      showToast(`Sync failed: ${e.message}`, 'error')
+    }
   } finally {
     syncingRepo.value = null
   }
@@ -206,6 +213,10 @@ async function handleDelete(name) {
 
 .toast-error {
   background-color: #ef4444;
+}
+
+.toast-info {
+  background-color: #3b82f6;
 }
 
 @keyframes slideIn {

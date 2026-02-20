@@ -97,25 +97,23 @@ async def sync_repositories(sync_request: SyncRequestSchema):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/{name}", response_model=SyncResultSchema)
-async def sync_single_repository(name: str, dry_run: bool = False):
-    """Sync a single repository by name."""
+def _run_sync_task(name: str, dry_run: bool = False):
+    """Background task for syncing a repository."""
+    import logging
+    logger = logging.getLogger(__name__)
     start_time = time.time()
+
     try:
         manager = get_config_manager()
-
         repo_config = manager.get_repository(name)
+
         if not repo_config:
-            raise HTTPException(status_code=404, detail=f"Repository '{name}' not found")
+            logger.error(f"Repository '{name}' not found in background sync")
+            return
 
         if dry_run:
-            return SyncResultSchema(
-                repository=name,
-                success=True,
-                message="Dry run - no changes made",
-                branches_synced=repo_config.sync_branches or ["all"],
-                tags_synced=0,
-            )
+            logger.info(f"Dry run for {name} - no changes made")
+            return
 
         orchestrator = SyncOrchestrator(manager)
         sync_result = orchestrator.sync_repository(repo_config)
@@ -134,17 +132,10 @@ async def sync_single_repository(name: str, dry_run: bool = False):
             error=sync_result.error,
         )
 
-        return SyncResultSchema(
-            repository=name,
-            success=sync_result.success,
-            message=message,
-            branches_synced=sync_result.branches_synced,
-            tags_synced=len(sync_result.tags_synced),
-        )
-    except HTTPException:
-        raise
+        logger.info(f"Background sync completed for {name}: {message}")
     except Exception as e:
         duration = time.time() - start_time
+        logger.error(f"Background sync failed for {name}: {e}")
         # Save failed sync to history
         save_sync_record(
             repository=name,
@@ -155,6 +146,49 @@ async def sync_single_repository(name: str, dry_run: bool = False):
             duration=duration,
             error=str(e),
         )
+
+
+@router.post("/{name}", response_model=SyncResultSchema)
+async def sync_single_repository(
+    name: str,
+    dry_run: bool = False,
+    background_tasks: BackgroundTasks = None
+):
+    """Sync a single repository by name.
+
+    The sync runs in the background. Check History for results.
+    """
+    try:
+        manager = get_config_manager()
+
+        repo_config = manager.get_repository(name)
+        if not repo_config:
+            raise HTTPException(status_code=404, detail=f"Repository '{name}' not found")
+
+        if dry_run:
+            return SyncResultSchema(
+                repository=name,
+                success=True,
+                message="Dry run - no changes made",
+                branches_synced=repo_config.sync_branches or ["all"],
+                tags_synced=0,
+                background=False,
+            )
+
+        # Run sync in background
+        background_tasks.add_task(_run_sync_task, name, dry_run)
+
+        return SyncResultSchema(
+            repository=name,
+            success=True,
+            message="Sync started in background. Check History for results.",
+            branches_synced=[],
+            tags_synced=0,
+            background=True,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 

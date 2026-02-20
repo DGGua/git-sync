@@ -140,6 +140,7 @@ class SyncResultSchema(BaseModel):
     message: str
     branches_synced: List[str] = Field(default_factory=list, alias="branchesSynced")
     tags_synced: int = Field(default=0, alias="tagsSynced")
+    background: bool = Field(default=False, alias="background")
 
     class Config:
         populate_by_name = True

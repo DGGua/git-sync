@@ -153,6 +153,14 @@ export const useSyncStore = defineStore('sync', () => {
       const response = await syncApi.runSingle(name, dryRun)
       return response.data
     } catch (e) {
+      // Handle timeout as background sync
+      if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
+        return {
+          success: true,
+          background: true,
+          message: 'Sync is running in background. Check History for results.'
+        }
+      }
       error.value = e.response?.data?.detail || e.message
       throw e
     } finally {
