@@ -46,6 +46,9 @@ class RepositoryConfig:
     sync_branches: List[str] = field(default_factory=list)
     sync_tags: bool = True
     order: int = 0
+    # Scheduled sync settings (per-repository)
+    auto_sync_enabled: bool = True
+    auto_sync_interval: int = 86400  # 24 hours in seconds
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -57,6 +60,8 @@ class RepositoryConfig:
             "sync_branches": self.sync_branches,
             "sync_tags": self.sync_tags,
             "order": self.order,
+            "auto_sync_enabled": self.auto_sync_enabled,
+            "auto_sync_interval": self.auto_sync_interval,
         }
 
 
@@ -161,6 +166,8 @@ class Config:
                 sync_branches=repo_data.get("sync_branches", []),
                 sync_tags=repo_data.get("sync_tags", True),
                 order=repo_data.get("order", 0),
+                auto_sync_enabled=repo_data.get("auto_sync_enabled", True),
+                auto_sync_interval=repo_data.get("auto_sync_interval", 86400),
             )
             repositories.append(repo)
 

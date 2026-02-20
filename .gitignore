@@ -43,3 +43,5 @@ config.yaml
 
 .mirror-cache
 .ssh
+
+node_modules/

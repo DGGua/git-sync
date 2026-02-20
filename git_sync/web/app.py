@@ -1,6 +1,7 @@
 """FastAPI application for git-sync web frontend."""
 
 import os
+import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
 
@@ -15,8 +16,17 @@ from git_sync.web.api import (
     repositories_router,
     keys_router,
     sync_router,
+    history_router,
+    scheduler_router,
 )
 from git_sync.web.api.config import set_config_manager
+from git_sync.web.api.scheduler import set_scheduler
+from git_sync.web.scheduler import SyncScheduler
+
+logger = logging.getLogger(__name__)
+
+# Global scheduler instance
+scheduler = None
 
 
 def get_frontend_dist_dir() -> Path:
@@ -38,11 +48,23 @@ def get_frontend_dist_dir() -> Path:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
+    global scheduler
     # Startup: Initialize config manager
     config_manager = ConfigManager()
     set_config_manager(config_manager)
+
+    # Start scheduler
+    scheduler = SyncScheduler(config_manager)
+    set_scheduler(scheduler)
+    scheduler.start()
+    logger.info("Application started")
+
     yield
-    # Shutdown: cleanup if needed
+
+    # Shutdown: stop scheduler and cleanup
+    if scheduler:
+        scheduler.stop()
+    logger.info("Application shutdown")
 
 
 def create_app(config_path: str = None) -> FastAPI:
@@ -80,6 +102,8 @@ def create_app(config_path: str = None) -> FastAPI:
     app.include_router(repositories_router)
     app.include_router(keys_router)
     app.include_router(sync_router)
+    app.include_router(history_router)
+    app.include_router(scheduler_router)
 
     # Serve frontend static files if available
     frontend_dist = get_frontend_dist_dir()

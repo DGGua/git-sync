@@ -8,6 +8,7 @@
         <router-link to="/" class="nav-link">Dashboard</router-link>
         <router-link to="/repositories" class="nav-link">Repositories</router-link>
         <router-link to="/keys" class="nav-link">SSH Keys</router-link>
+        <router-link to="/history" class="nav-link">History</router-link>
         <router-link to="/settings" class="nav-link">Settings</router-link>
       </div>
     </nav>

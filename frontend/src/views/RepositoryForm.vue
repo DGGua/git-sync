@@ -108,6 +108,30 @@
         </div>
       </div>
 
+      <div class="form-section">
+        <h3 class="section-title">Auto Sync</h3>
+
+        <div class="form-group">
+          <label class="form-checkbox">
+            <input v-model="form.auto_sync_enabled" type="checkbox" />
+            <span>Enable Auto Sync</span>
+          </label>
+          <p class="form-help">Automatically sync this repository at regular intervals</p>
+        </div>
+
+        <div class="form-group" v-if="form.auto_sync_enabled">
+          <label class="form-label">Sync Interval (hours)</label>
+          <input
+            v-model.number="autoSyncIntervalHours"
+            type="number"
+            class="form-input"
+            min="1"
+            max="168"
+          />
+          <p class="form-help">How often to automatically sync (1-168 hours)</p>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" :disabled="submitting">
           {{ submitting ? 'Saving...' : (isEdit ? 'Update' : 'Create') }}
@@ -146,6 +170,8 @@ const form = ref({
   },
   sync_branches: [],
   sync_tags: true,
+  auto_sync_enabled: true,
+  auto_sync_interval: 86400,
 })
 
 const branchesInput = computed({
@@ -156,6 +182,12 @@ const branchesInput = computed({
       .map(s => s.trim())
       .filter(s => s.length > 0)
   }
+})
+
+// Computed property for interval in hours (for easier UI)
+const autoSyncIntervalHours = computed({
+  get: () => Math.round(form.value.auto_sync_interval / 3600),
+  set: (val) => { form.value.auto_sync_interval = val * 3600 }
 })
 
 onMounted(async () => {
@@ -174,6 +206,8 @@ onMounted(async () => {
           target: { ...repo.target },
           sync_branches: [...repo.sync_branches],
           sync_tags: repo.sync_tags,
+          auto_sync_enabled: repo.auto_sync_enabled ?? true,
+          auto_sync_interval: repo.auto_sync_interval ?? 86400,
         }
       } else {
         error.value = 'Repository not found'

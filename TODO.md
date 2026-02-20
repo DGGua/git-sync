@@ -43,11 +43,23 @@
   - [x] 全局设置页
   - [x] Toast 通知反馈
 
+- [x] 同步历史记录
+  - [x] 后端历史存储（JSON 文件）
+  - [x] 历史 API（GET/DELETE /api/history）
+  - [x] 统计 API（/api/history/stats）
+  - [x] 前端历史页面
+  - [x] 导航栏添加 History 链接
+
+- [x] 定时同步功能
+  - [x] 后台调度器（APScheduler）
+  - [x] 调度器状态 API（/api/scheduler）
+  - [x] 调度器控制 API（start/stop/reload/run）
+  - [x] 前端设置页配置 UI
+  - [x] 配置持久化
+
 ## 待开发功能
 
 ### 优先级高
-- [ ] 同步历史记录
-- [ ] 定时同步（cron 集成）
 - [ ] 同步失败通知（邮件/ webhook）
 
 ### 优先级中

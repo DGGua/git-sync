@@ -1,5 +1,6 @@
 """Sync operation API routes."""
 
+import time
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 
@@ -13,6 +14,7 @@ from git_sync.web.schemas import (
     MessageSchema,
 )
 from git_sync.web.api.config import get_config_manager
+from git_sync.web.api.history import save_sync_record
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
 
@@ -98,6 +100,7 @@ async def sync_repositories(sync_request: SyncRequestSchema):
 @router.post("/{name}", response_model=SyncResultSchema)
 async def sync_single_repository(name: str, dry_run: bool = False):
     """Sync a single repository by name."""
+    start_time = time.time()
     try:
         manager = get_config_manager()
 
@@ -117,16 +120,41 @@ async def sync_single_repository(name: str, dry_run: bool = False):
         orchestrator = SyncOrchestrator(manager)
         sync_result = orchestrator.sync_repository(repo_config)
 
+        duration = time.time() - start_time
+        message = sync_result.error or "Sync completed"
+
+        # Save to history
+        save_sync_record(
+            repository=name,
+            success=sync_result.success,
+            message=message,
+            branches_synced=sync_result.branches_synced,
+            tags_synced=len(sync_result.tags_synced),
+            duration=duration,
+            error=sync_result.error,
+        )
+
         return SyncResultSchema(
             repository=name,
             success=sync_result.success,
-            message=sync_result.error or "Sync completed",
+            message=message,
             branches_synced=sync_result.branches_synced,
             tags_synced=len(sync_result.tags_synced),
         )
     except HTTPException:
         raise
     except Exception as e:
+        duration = time.time() - start_time
+        # Save failed sync to history
+        save_sync_record(
+            repository=name,
+            success=False,
+            message=str(e),
+            branches_synced=[],
+            tags_synced=0,
+            duration=duration,
+            error=str(e),
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 

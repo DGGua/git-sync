@@ -28,6 +28,11 @@ const routes = [
     component: () => import('@/views/KeyList.vue')
   },
   {
+    path: '/history',
+    name: 'History',
+    component: () => import('@/views/History.vue')
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/Settings.vue')
