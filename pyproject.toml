@@ -36,6 +36,12 @@ dev = [
     "black>=23.0",
     "ruff>=0.1.0",
 ]
+web = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.22.0",
+    "python-multipart>=0.0.6",
+    "ruamel.yaml>=0.17.0",
+]
 
 [project.scripts]
 git-sync = "git_sync.cli:main"

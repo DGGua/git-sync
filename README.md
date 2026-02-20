@@ -4,6 +4,7 @@
 
 ## 功能特性
 
+- **Web 管理界面**: 通过网页管理仓库配置、SSH 密钥和同步操作
 - **SSH 密钥管理**: 生成、列出、查看和删除 SSH 密钥
 - **多仓库支持**: 配置文件驱动，支持批量同步多个仓库
 - **多配置文件**: 支持将配置拆分到 `configs/` 目录下的多个文件中
@@ -25,7 +26,45 @@ source .venv/bin/activate  # Linux/macOS
 
 # 安装依赖
 pip install -e .
+
+# 安装 Web 界面依赖（可选）
+pip install -e ".[web]"
+
+# 安装前端依赖并构建
+cd frontend
+npm install
+npm run build
+cd ..
 ```
+
+## 启动方式
+
+### CLI 模式
+
+```bash
+git-sync --help
+git-sync init
+git-sync sync --dry-run
+```
+
+### Web 界面模式
+
+```bash
+# 启动 Web 服务
+uvicorn git_sync.web.app:app --reload
+
+# 或指定端口和主机
+uvicorn git_sync.web.app:app --host 0.0.0.0 --port 8000
+```
+
+然后访问 http://localhost:8000 即可使用 Web 管理界面。
+
+**Web 界面功能：**
+- Dashboard 概览
+- 仓库管理（支持拖拽排序）
+- SSH 密钥管理
+- 全局设置配置
+- 一键同步操作
 
 ## 快速开始
 
