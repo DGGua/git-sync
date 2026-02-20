@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git --version:*)",
+      "Bash(pip3:*)",
+      "Bash(pip install:*)",
+      "Bash(python3:*)",
+      "Bash(.venv/bin/pip:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(.venv/bin/git-sync:*)",
+      "Bash(ssh-keygen:*)",
+      "Bash(ssh-keyscan:*)",
+      "Bash(ssh:*)",
+      "Bash(python:*)"
+    ]
+  }
+}

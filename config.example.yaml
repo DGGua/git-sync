@@ -1,0 +1,61 @@
+# Git Sync Configuration Example
+# Copy this file to config.yaml and modify as needed
+
+version: "1.0"
+
+# SSH Key Configuration
+ssh:
+  # Directory to store SSH keys (relative to project root or absolute path)
+  key_storage: ".ssh"
+
+  # Default key type: ed25519, rsa, ecdsa
+  default_key_type: "ed25519"
+
+# Sync Settings
+sync:
+  # Temporary directory for cloning repositories
+  temp_dir: "/tmp/git-sync"
+
+  # Timeout in seconds for git operations
+  timeout: 300
+
+  # Clean up temporary files after sync
+  cleanup_after_sync: true
+
+  # Enable mirror cache for faster subsequent syncs
+  enable_mirror_cache: true
+
+  # Mirror cache directory (relative to project root or absolute path)
+  mirror_cache_dir: ".mirror-cache"
+
+# Repository Configurations
+repositories:
+  # Example repository configuration
+  - name: "project-alpha"
+    # Source repository
+    source:
+      url: "git@github.com:source/project.git"
+      # SSH key name (without path, just the name)
+      ssh_key: "project-alpha_key"
+    # Target repository
+    target:
+      url: "git@gitlab.com:target/project.git"
+      ssh_key: "project-alpha_key"
+    # Enable/disable this repository
+    enabled: true
+    # Branches to sync (empty = all branches)
+    sync_branches: ["main", "develop"]
+    # Whether to sync tags
+    sync_tags: true
+
+  # Another example
+  - name: "project-beta"
+    source:
+      url: "git@github.com:another/repo.git"
+      ssh_key: "project-beta_key"
+    target:
+      url: "git@gitee.com:mirror/repo.git"
+      ssh_key: "project-beta_key"
+    enabled: false
+    sync_branches: []  # Empty = sync all branches
+    sync_tags: false

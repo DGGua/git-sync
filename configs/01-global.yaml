@@ -1,0 +1,15 @@
+# Git Sync Global Configuration
+# This file contains global settings that apply to all repositories.
+
+version: "1.0"
+
+ssh:
+  key_storage: ".ssh"
+  default_key_type: "ed25519"
+
+sync:
+  temp_dir: "/tmp/git-sync"
+  timeout: 300
+  cleanup_after_sync: true
+  enable_mirror_cache: true
+  mirror_cache_dir: ".mirror-cache"

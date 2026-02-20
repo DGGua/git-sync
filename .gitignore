@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Configuration (contains sensitive data)
+config.yaml
+
+# SSH keys (sensitive)
+.ssh/*.pem
+.ssh/id_*
+.ssh/*_key
+.ssh/*_key.pub
+
+# Keep manifest and example
+!.ssh/keys_manifest.yaml
+!.gitignore
+
+# Temporary sync directories
+/tmp/
+
+.mirror-cache
+.ssh

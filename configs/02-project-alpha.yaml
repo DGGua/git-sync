@@ -1,0 +1,14 @@
+# Project Alpha Repositories
+# Add your project-specific repository configurations here.
+
+repositories:
+  - name: "project-alpha-main"
+    source:
+      url: "git@github.com:source/project.git"
+      ssh_key: "project-alpha_key"
+    target:
+      url: "git@gitlab.com:target/project.git"
+      ssh_key: "project-alpha_key"
+    enabled: true
+    sync_branches: ["main", "develop"]
+    sync_tags: true
