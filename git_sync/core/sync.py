@@ -113,7 +113,7 @@ class SyncOrchestrator:
             Path to mirror cache directory
         """
         config = self.config_manager.config
-        mirror_base = Path(config.sync.mirror_cache_dir)
+        mirror_base = Path(config.sync.mirror_cache_dir).resolve()
         mirror_base.mkdir(parents=True, exist_ok=True)
         return mirror_base / f"{repo_name}.git"
 
@@ -152,7 +152,7 @@ class SyncOrchestrator:
             active_repos: List of active repository names
         """
         config = self.config_manager.config
-        mirror_base = Path(config.sync.mirror_cache_dir)
+        mirror_base = Path(config.sync.mirror_cache_dir).resolve()
 
         if not mirror_base.exists():
             return

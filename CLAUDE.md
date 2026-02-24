@@ -4,66 +4,92 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Git Sync is a command-line tool for synchronizing Git repositories between different hosting services (e.g., GitHub to GitLab). It supports SSH key management, selective branch/tag syncing, and includes safety features like fast-forward checks to prevent accidental overwrites.
+Git Sync is a tool for synchronizing Git repositories between different hosting services (e.g., GitHub to GitLab). It provides both a CLI and a Web UI, with SSH key management, selective branch/tag syncing, and safety features like fast-forward checks.
 
 ## Development Commands
 
 ```bash
-# Install the package in development mode
+# Install in development mode
 pip install -e .
 
-# Install development dependencies
+# Install with dev dependencies (testing, linting)
 pip install -e ".[dev]"
 
-# Run the CLI
+# Install with web dependencies (FastAPI, scheduler)
+pip install -e ".[web]"
+
+# CLI usage
 git-sync --help
 git-sync init
 git-sync sync --dry-run
 
+# Run web server
+uvicorn git_sync.web.app:app --reload
+
 # Run tests
 pytest
-
-# Run tests with coverage
 pytest --cov=git_sync
 
-# Lint with ruff
+# Linting and formatting
 ruff check .
-
-# Format with black
 black .
+```
+
+### Frontend Development
+
+```bash
+cd frontend
+npm install
+npm run dev      # Development server
+npm run build    # Build for production
+```
+
+### Docker
+
+```bash
+docker compose up -d              # Development (bind mounts)
+docker compose -f docker-compose.prod.yml up -d  # Production (named volumes)
 ```
 
 ## Architecture
 
-The codebase follows a layered architecture under the `git_sync/` package:
+The codebase follows a layered architecture under `git_sync/`:
 
 ### CLI Layer (`cli.py`)
 - Uses Click for command-line interface
 - Main commands: `init`, `key` (gen/list/show/delete), `repo list`, `sync`
-- Entry point: `git_sync.cli:main` (configured in pyproject.toml)
 
 ### Configuration Layer (`config/`)
-- `schema.py`: Dataclasses defining configuration structure (Config, RepositoryConfig, SSHConfig, SyncSettings)
-- `loader.py`: ConfigManager handles YAML loading and repository lookup
+- `schema.py`: Dataclasses for Config, RepositoryConfig, SSHConfig, SyncSettings
+- `loader.py`: ConfigManager handles YAML loading from `configs/` directory
 
 ### SSH Layer (`ssh/`)
-- `key_manager.py`: KeyManager class handles SSH key generation, storage, and manifest tracking
-- `ssh_config.py`: SSHConfigGenerator builds SSH environment variables for git operations
+- `key_manager.py`: KeyManager handles SSH key generation, storage, and manifest tracking
+- `ssh_config.py`: SSHConfigGenerator builds `GIT_SSH_COMMAND` environment variable
 
 ### Core Layer (`core/`)
 - `repository.py`: Repository class wraps git operations (clone, fetch, push, branch/tag queries)
-- `sync.py`: SyncOrchestrator coordinates the sync workflow with SyncResult/SyncSummary dataclasses
-- `exceptions.py`: Custom exception hierarchy (GitSyncError, ConfigurationError, SSHKeyError, etc.)
+- `sync.py`: SyncOrchestrator coordinates the sync workflow
+- `exceptions.py`: Custom exception hierarchy
 
-### Utilities (`utils/`)
-- `logger.py`: Logging setup with configurable levels
+### Web Layer (`web/`)
+- `app.py`: FastAPI application with lifespan management, serves Vue.js frontend
+- `scheduler.py`: SyncScheduler uses APScheduler for automatic sync jobs per repository
+- `api/`: REST API endpoints (config, keys, repositories, sync, history, scheduler)
+- `history.py`: Sync history tracking stored in `data/sync_history.json`
+
+### Frontend (`frontend/`)
+- Vue 3 + Vue Router + Pinia + Vite
+- Single-page app served by FastAPI at non-API routes
 
 ## Key Design Decisions
 
-1. **Mirror Cache**: Sync uses a local mirror cache (`.mirror-cache/`) for faster subsequent syncs. On first sync, a bare mirror is created; subsequent syncs fetch updates incrementally.
+1. **Mirror Cache**: Uses `.mirror-cache/` for faster subsequent syncs. First sync creates a bare mirror; subsequent syncs fetch incrementally.
 
-2. **Safety Checks**: Push operations only proceed if fast-forward is possible (checked via `merge-base --is-ancestor`). Branches with diverged history are skipped rather than force-pushed.
+2. **Safety Checks**: Push only proceeds if fast-forward is possible (via `merge-base --is-ancestor`). Diverged branches are skipped, never force-pushed.
 
-3. **SSH Key Management**: Keys are stored in `.ssh/` with a `keys_manifest.yaml` tracking metadata. The `GIT_SSH_COMMAND` environment variable is used to specify keys per-operation.
+3. **SSH Key Management**: Keys stored in `.ssh/` with `keys_manifest.yaml` tracking. Uses `GIT_SSH_COMMAND` env var to specify keys per-operation.
 
-4. **Configuration Search**: ConfigManager searches for `config.yaml` or `config.yml` in the current directory and up to 5 parent directories.
+4. **Multi-File Configuration**: `configs/` directory supports multiple YAML files merged at load time. Global settings from first file, repositories merged with later files overriding duplicates.
+
+5. **Auto-Sync Scheduler**: Each repository can have `auto_sync_enabled` and `auto_sync_interval`. SyncScheduler schedules APScheduler jobs per repo on web server startup.

@@ -23,7 +23,7 @@ class KeyManager:
         Args:
             storage_path: Directory to store SSH keys
         """
-        self.storage_path = Path(storage_path)
+        self.storage_path = Path(storage_path).resolve()
         self._ensure_storage_exists()
         self._manifest: Optional[Dict] = None
 

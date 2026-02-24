@@ -4,7 +4,7 @@
 version: "1.0"
 
 ssh:
-  key_storage: ".ssh"
+  key_storage: "/app/.ssh"
   default_key_type: "ed25519"
 
 sync:
