@@ -40,7 +40,7 @@ configs/
 .ssh/id_*
 .ssh/*_key
 .ssh/*_key.pub
-
+/api/sync/
 # Keep manifest and example
 !.ssh/keys_manifest.yaml
 !.gitignore

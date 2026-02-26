@@ -67,6 +67,8 @@ class SyncScheduler:
                     IntervalTrigger(seconds=interval),
                     id=job_id,
                     replace_existing=True,
+                    misfire_grace_time=3600,  # Allow 1 hour grace period for missed jobs
+                    coalesce=True,  # Combine multiple missed runs into one
                 )
                 scheduled_count += 1
                 logger.info(
